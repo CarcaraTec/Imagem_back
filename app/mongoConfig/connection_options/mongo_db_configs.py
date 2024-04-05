@@ -1,5 +1,4 @@
 config={
-    "host":"localhost",
-    "port":27017,
+    "password":"T3Ccarcaratec",
     "db_name":"banco_imagem_api"
 }

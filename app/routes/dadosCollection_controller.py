@@ -24,14 +24,16 @@ def register_routes(app, db_connection):
     def mapaComMarcador():
         m = folium.Map([47.3, 8.5], zoom_start=5) 
 
-        coordinates = [
-            [51.5074, -0.1278],  
-            [48.8566, 2.3522],    
-            [52.52, 13.405],      
-            [41.9028, 12.4964],   
-            [55.7558, 37.6176]    
-        ]
+        filter = {'latitude': {'$exists': True}, 'longitude': {'$exists': True}}
 
+        data = repository.select_many(filter)
+
+        coordinates = []
+
+        for elem in data:
+            lat = elem['latitude']
+            lon = elem['longitude']
+            coordinates.append([lat, lon])
 
         for coord in coordinates:
             folium.Marker(location=coord).add_to(m)
@@ -40,17 +42,20 @@ def register_routes(app, db_connection):
     
     @app.route("/mapa-calor")
     def mapaDeCalor():
-        m = folium.Map([47.3, 8.5], zoom_start=5) 
+        m = folium.Map([47.3, 8.5], zoom_start=5)
 
-        coordinates = [
-            [51.5074, -0.1278],   
-            [48.8566, 2.3522],    
-            [52.52, 13.405],      
-            [41.9028, 12.4964],   
-            [55.7558, 37.6176]    
-        ]
+        filter = {'latitude': {'$exists': True}, 'longitude': {'$exists': True}}
+
+        data = repository.select_many(filter)
+
+        coordinates = []
+
+        for elem in data:
+            lat = elem['latitude']
+            lon = elem['longitude']
+            coordinates.append([lat, lon])
 
         HeatMap(coordinates).add_to(m)
 
         return m.get_root().render()
-    
+        
