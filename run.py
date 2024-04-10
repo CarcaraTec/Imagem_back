@@ -1,6 +1,6 @@
 from flask import Flask
 from app.mongoConfig.connection_options.connection import DBconnectionHandler
-from app.routes.dadosCollection_controller import register_routes
+from app.routes.mapaController import register_routes
 
 app = Flask(__name__)
 db_handle = DBconnectionHandler()
