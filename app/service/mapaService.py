@@ -1,46 +1,54 @@
-from app.repository.dadosCollection_repository import DadosCollectionRepository
 import folium
 from folium.plugins import HeatMap
+from app.repository.dadosCollection_repository import DadosCollectionRepository
 
-def gerar_mapa_de_calor(repository: DadosCollectionRepository, sentimento: int = None) -> str:
-    m = folium.Map([47.3, 8.5], zoom_start=4)
+class MapaService:
 
-    filter = {'latitude': {'$exists': True}, 'longitude': {'$exists': True}}
+    def __init__(self):
+        self.repository = DadosCollectionRepository()
 
-    if sentimento is not None:
-        filter['sentiment'] = int(sentimento)
+    def gerar_mapa_de_calor(self, sentimento: int = None) -> str:
+        m = folium.Map([47.3, 8.5], zoom_start=4)
 
-    data = repository.select_many(filter)
+        filter = {'latitude': {'$exists': True}, 'longitude': {'$exists': True}}
 
-    coordinates = []
+        if sentimento is not None:
+            filter['sentiment'] = int(sentimento)
 
-    for elem in data:
-        lat = elem['latitude']
-        lon = elem['longitude']
-        coordinates.append([lat, lon])
+        data = self.repository.select_many(filter)
 
-    HeatMap(coordinates).add_to(m)
+        coordinates = []
 
-    return m.get_root().render()
+        for elem in data:
+            lat = elem['latitude']
+            lon = elem['longitude']
+            coordinates.append([lat, lon])
 
-def gerar_mapa_marcador(repository: DadosCollectionRepository):
-    m = folium.Map([47.3, 8.5], zoom_start=4)
+        HeatMap(coordinates).add_to(m)
 
-    filter = {'latitude': {'$exists': True}, 'longitude': {'$exists': True}}
+        return m.get_root().render()
 
-    data = repository.select_many(filter)
+    def gerar_mapa_marcador(self):
+        m = folium.Map([47.3, 8.5], zoom_start=4)
 
-    coordinates = [{'location': [elem['latitude'], elem['longitude']], 'sentiment': elem.get('sentiment', 2)} for elem in data]
+        filter = {'latitude': {'$exists': True}, 'longitude': {'$exists': True}}
 
-    def get_sentiment_color(sentiment):
-        sentiment_colors = {1: 'DarkGreen', 0: 'DarkRed', 2: 'blue'}
-        return sentiment_colors.get(sentiment, 'gray')
+        data = self.repository.select_many(filter)
 
-    for coord in coordinates:
-        location = coord['location']
-        sentiment = coord['sentiment']
-        color = get_sentiment_color(sentiment)
+        coordinates = [{'location': [elem['latitude'], elem['longitude']], 'sentiment': elem.get('sentiment', 2)} for elem in data]
 
-        folium.CircleMarker(location=location, radius=4, color=color, fill=True, fill_color=color).add_to(m)
+        def get_sentiment_color(sentiment):
+            sentiment_colors = {1: 'DarkGreen', 0: 'DarkRed', 2: 'blue'}
+            return sentiment_colors.get(sentiment, 'gray')
 
-    return m.get_root().render()
+        for coord in coordinates:
+            location = coord['location']
+            sentiment = coord['sentiment']
+            color = get_sentiment_color(sentiment)
+
+            folium.CircleMarker(location=location, radius=4, color=color, fill=True, fill_color=color).add_to(m)
+
+        return m.get_root().render()
+    
+    def insert_document(self, data):
+        self.repository.insert_document(data)
