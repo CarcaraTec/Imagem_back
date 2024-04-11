@@ -1,32 +1,21 @@
-from flask import request, jsonify, render_template_string
+import folium
+from folium.plugins import HeatMap
 from app.repository.dadosCollection_repository import DadosCollectionRepository
 
-import folium
-from folium import plugins
-from folium.plugins import HeatMap
+class MapaService:
 
-def register_routes(app, db_connection):
-    repository = DadosCollectionRepository(db_connection)
+    def __init__(self):
+        self.repository = DadosCollectionRepository()
 
-    @app.route('/insert', methods=['POST'])
-    def insert_data():
-        data = request.json
-        result = repository.insert_document(data)
-        return jsonify(result), 201
-
-    @app.route('/select', methods=['GET'])
-    def select_data():
-        filter = request.args.to_dict()
-        data = repository.select_many(filter)
-        return jsonify(data), 200
-    
-    @app.route("/mapa-calor/geral")
-    def mapaDeCalor():
+    def gerar_mapa_de_calor(self, sentimento: int = None) -> str:
         m = folium.Map([47.3, 8.5], zoom_start=4)
 
         filter = {'latitude': {'$exists': True}, 'longitude': {'$exists': True}}
 
-        data = repository.select_many(filter)
+        if sentimento is not None:
+            filter['sentiment'] = int(sentimento)
+
+        data = self.repository.select_many(filter)
 
         coordinates = []
 
@@ -38,14 +27,13 @@ def register_routes(app, db_connection):
         HeatMap(coordinates).add_to(m)
 
         return m.get_root().render()
-    
-    @app.route("/mapa-marcador/geral")
-    def mapa_com_marcador():
+
+    def gerar_mapa_marcador(self):
         m = folium.Map([47.3, 8.5], zoom_start=4)
 
         filter = {'latitude': {'$exists': True}, 'longitude': {'$exists': True}}
 
-        data = repository.select_many(filter)
+        data = self.repository.select_many(filter)
 
         coordinates = [{'location': [elem['latitude'], elem['longitude']], 'sentiment': elem.get('sentiment', 2)} for elem in data]
 
@@ -60,5 +48,7 @@ def register_routes(app, db_connection):
 
             folium.CircleMarker(location=location, radius=4, color=color, fill=True, fill_color=color).add_to(m)
 
-        html_map = m.get_root().render()
-        return html_map
+        return m.get_root().render()
+    
+    def insert_document(self, data):
+        self.repository.insert_document(data)
