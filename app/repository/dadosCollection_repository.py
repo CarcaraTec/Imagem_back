@@ -4,7 +4,7 @@ from flask import current_app
 
 class DadosCollectionRepository:    
     def __init__(self) -> None:
-        self.__collection_name = "dadosCollection"
+        self.__collection_name = "reviews_analyzed"
 
     def insert_document(self, document: Dict) -> Dict:
         db_handler = current_app.config['db_handler']
