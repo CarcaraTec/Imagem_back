@@ -18,7 +18,11 @@ class MapaService:
 
         data = self.repository.select_many(filter)
 
-        coordinates = [[elem.get('lat'), elem.get('lng')] for elem in data if not math.isnan(elem.get('lat')) and not math.isnan(elem.get('lng'))]
+        coordinates = [
+            [elem.get('lat'), elem.get('lng')] 
+            for elem in data 
+            if not math.isnan(elem.get('lat')) and not math.isnan(elem.get('lng'))
+        ]
 
         HeatMap(coordinates).add_to(m)
 
@@ -31,7 +35,13 @@ class MapaService:
 
         data = self.repository.select_many(filter)
 
-        coordinates = [{'location': [elem.get('lat'), elem.get('lng')],'sentiment': elem.get('sentiment')}for elem in data if not (math.isnan(elem.get('lat')) or math.isnan(elem.get('lng')))]
+        coordinates = [
+            {
+                'location': [elem.get('lat'), elem.get('lng')],'sentiment': elem.get('sentiment')
+            }
+            for elem in data 
+            if not math.isnan(elem.get('lat')) and not math.isnan(elem.get('lng'))
+        ]
 
         def get_sentiment_color(sentiment):
             sentiment_colors = {'Positive': 'DarkGreen', 'Negative': 'DarkRed', 'Neutral': 'blue'}
