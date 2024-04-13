@@ -58,7 +58,7 @@ class DadosCollectionRepository:
             'Positive': positive_count,
             'Negative': negative_count,
             'Neutral': neutral_count,
-            'Porcentagem positivo': (positive_count / total_documents) * 100 if total_documents > 0 else 0
+            'SatisfactionIndex': (positive_count / total_documents) * 100 if total_documents > 0 else 0
         }
         
         return percentages
