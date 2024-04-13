@@ -16,7 +16,7 @@ class MapaService:
         if sentimento is not None:
             filter['sentiment'] = sentimento
 
-        data = self.repository.select_many(filter)
+        data = self.repository.select_random(filter, 100)
 
         coordinates = [
             [elem.get('lat'), elem.get('lng')] 
@@ -33,7 +33,7 @@ class MapaService:
 
         filter = {'lat': {'$exists': True}, 'lng': {'$exists': True}}
 
-        data = self.repository.select_many(filter)
+        data = self.repository.select_random(filter, 100)
 
         coordinates = [
             {
