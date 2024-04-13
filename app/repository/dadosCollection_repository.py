@@ -1,6 +1,8 @@
 from bson.objectid import ObjectId
 from typing import Dict, List
 from flask import current_app
+import random
+
 
 class DadosCollectionRepository:    
     def __init__(self) -> None:
@@ -18,6 +20,21 @@ class DadosCollectionRepository:
         collection = db_handler.get_db_connection()[self.__collection_name]
         data = collection.find(filter)
         response = [{**elem, '_id': str(elem['_id'])} for elem in data]
+        return response
+    
+    def select_random(self, filter, num_samples: int) -> List[Dict]:
+        db_handler = current_app.config['db_handler']
+        collection = db_handler.get_db_connection()[self.__collection_name]
+        
+        pipeline = [
+            {"$match": filter},
+            {"$sample": {"size": num_samples}}
+        ]
+        
+        random_documents = collection.aggregate(pipeline)
+        
+        response = [{**elem, '_id': str(elem['_id'])} for elem in random_documents]
+        
         return response
     
     def count_sentiments(self) -> Dict:
