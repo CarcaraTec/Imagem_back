@@ -21,6 +21,6 @@ class GraficoService:
         for dado in dados:
             sentiment = dado.get('sentiment')
             if sentiment in sentiment_data:
-                sentiment_data[sentiment].append(dado)
+                sentiment_data[sentiment].append(dado['Review_Date'])  # Adiciona apenas 'data' à lista correspondente
 
         return sentiment_data
