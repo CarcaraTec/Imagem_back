@@ -1,7 +1,5 @@
 from app.repository.dadosCollection_repository import DadosCollectionRepository
-import matplotlib.pyplot as plt
 from datetime import datetime
-from io import BytesIO
 
 class GraficoService:
 
