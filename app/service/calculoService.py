@@ -1,7 +1,4 @@
-import folium
-from folium.plugins import HeatMap
 from app.repository.dadosCollection_repository import DadosCollectionRepository
-import math
 
 class CalculoService:
 
