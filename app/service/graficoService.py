@@ -8,14 +8,20 @@ class GraficoService:
     def __init__(self):
         self.repository = DadosCollectionRepository()
 
+    def contar_ocorrencias_por_mes(self, dados, sentiment):
+        ocorrencias_por_mes = {month: 0 for month in range(1, 13)}
 
-    def traduzir_data_para_mes(self, data_str):
-        data_obj = datetime.strptime(data_str, '%m/%d/%Y')
+        for dado in dados:
+            if dado.get('sentiment') == sentiment:
+                review_date_str = dado.get('Review_Date')
+                if review_date_str:
+                    review_date = datetime.strptime(review_date_str, '%m/%d/%Y')
+                    month = review_date.month
+                    ocorrencias_por_mes[month] += 1
 
-        nome_mes = data_obj.strftime('%B') 
+        ocorrencias_mensais = [ocorrencias_por_mes[month] for month in range(1, 13)]
+        return ocorrencias_mensais
 
-        return nome_mes
-    
     def gerar_grafico_sentimentos(self):
         filtro = {}
         dados = self.repository.select_random(filtro, 100)
@@ -26,17 +32,9 @@ class GraficoService:
             'Neutral': []
         }
 
-        for dado in dados:
-            sentiment = dado.get('sentiment')
-            if sentiment in sentiment_data:
-                data_str = dado.get('Review_Date')
-                
-                if data_str:
-                    nome_mes = self.traduzir_data_para_mes(data_str)
-                    
-                    sentiment_data[sentiment].append(nome_mes)
+        for sentiment in sentiment_data:
+            ocorrencias_mensais = self.contar_ocorrencias_por_mes(dados, sentiment)
+            sentiment_data[sentiment] = ocorrencias_mensais
 
         return sentiment_data
-        
-
     
