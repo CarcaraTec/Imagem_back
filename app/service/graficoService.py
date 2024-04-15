@@ -1,5 +1,9 @@
 from app.repository.dadosCollection_repository import DadosCollectionRepository
 from datetime import datetime
+from collections import Counter
+import nltk
+from nltk.corpus import stopwords
+nltk.download('stopwords')
 
 class GraficoService:
 
@@ -22,7 +26,7 @@ class GraficoService:
 
     def gerar_grafico_sentimentos(self):
         filtro = {}
-        dados = self.repository.select_random(filtro, 100)
+        dados = self.repository.select_first(filtro, 100)
 
         sentiment_data = {
             'Negative': [],
@@ -33,6 +37,54 @@ class GraficoService:
         for sentiment in sentiment_data:
             ocorrencias_mensais = self.contar_ocorrencias_por_mes(dados, sentiment)
             sentiment_data[sentiment] = ocorrencias_mensais
-
         return sentiment_data
     
+
+    def gerar_top_5_insights(self):
+        filtro = {'sentiment': 'Negative'}
+        dados = self.repository.select_first(filtro, 1000)
+        objects = []
+        hotels = ['Hotel Arena','K K Hotel George','Apex Temple Court Hotel','The Park Grand London Paddington','The Principal London']
+        palavras_comuns = self.filtrar_palavras_mais_comuns(dados)
+        
+        for indice, nome in enumerate(hotels):
+            print(f"Nome {indice + 1}: {nome}")
+        
+        for indice, doc in enumerate(palavras_comuns):
+            objeto = {
+            "hotel": hotels[indice],
+            "problem": doc[0],
+            "recurrence": doc[1],
+            "solution": ""}
+            objects.append(objeto)
+
+        return objects
+    
+    def filtrar_palavras_mais_comuns(self,dados):
+        
+        array_strings = []
+
+        for documento in dados:
+            texto = str(documento['Negative_Review']).lower()
+            texto = self.remove_stopwords(texto)
+            array_strings.extend(texto.split())
+
+        contagem_palavras = Counter(array_strings)
+        palavras_comuns = contagem_palavras.most_common(5)
+
+        
+        return palavras_comuns
+
+    def remove_stopwords(text,self):
+        stop_words = set(stopwords.words('english'))
+        stop_words.add('nothing')
+        stop_words.add('like')
+        stop_words.add('one')
+        stop_words.add('us')
+        stop_words.add('rooms')
+        if isinstance(self, str):
+            words = self.split()
+            filtered_words = [word for word in words if word.lower() not in stop_words]
+            return ' '.join(filtered_words)
+        else:
+            return ''

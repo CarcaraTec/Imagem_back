@@ -36,7 +36,16 @@ class DadosCollectionRepository:
         response = [{**elem, '_id': str(elem['_id'])} for elem in random_documents]
         
         return response
-    
+
+    def select_first(self, filter,num_samples: int) -> List[Dict]:
+        db_handler = current_app.config['db_handler']
+        collection = db_handler.get_db_connection()[self.__collection_name]
+        data = collection.find(filter).limit(num_samples)  # Limitando a 100 resultados
+        response = [{**elem, '_id': str(elem['_id'])} for elem in data]
+        return response
+
+
+
     def count_sentiments(self) -> Dict:
         db_handler = current_app.config['db_handler']
         collection = db_handler.get_db_connection()[self.__collection_name]
