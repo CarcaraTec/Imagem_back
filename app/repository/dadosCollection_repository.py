@@ -1,23 +1,73 @@
 from bson.objectid import ObjectId
 from typing import Dict, List
-from datetime import timedelta
+from flask import current_app
+import random
 
-class DadosCollectionRepository:
-    def __init__(self, db_connection) -> None:
-        self.__collection_name = "dadosCollection"
-        self.__db_connection = db_connection
 
-    
+class DadosCollectionRepository:    
+    def __init__(self) -> None:
+        self.__collection_name = "reviews_analyzed"
+
     def insert_document(self, document: Dict) -> Dict:
-        collection = self.__db_connection.get_collection(self.__collection_name)
+        db_handler = current_app.config['db_handler']
+        collection = db_handler.get_db_connection()[self.__collection_name]
         result = collection.insert_one(document)
         document['_id'] = str(result.inserted_id)
         return document
     
     def select_many(self, filter) -> List[Dict]:
-        collection = self.__db_connection.get_collection(self.__collection_name)
+        db_handler = current_app.config['db_handler']
+        collection = db_handler.get_db_connection()[self.__collection_name]
         data = collection.find(filter)
-
         response = [{**elem, '_id': str(elem['_id'])} for elem in data]
-
         return response
+    
+    def select_random(self, filter, num_samples: int) -> List[Dict]:
+        db_handler = current_app.config['db_handler']
+        collection = db_handler.get_db_connection()[self.__collection_name]
+        
+        pipeline = [
+            {"$match": filter},
+            {"$sample": {"size": num_samples}}
+        ]
+        
+        random_documents = collection.aggregate(pipeline)
+        
+        response = [{**elem, '_id': str(elem['_id'])} for elem in random_documents]
+        
+        return response
+
+    def select_first(self, filter,num_samples: int) -> List[Dict]:
+        db_handler = current_app.config['db_handler']
+        collection = db_handler.get_db_connection()[self.__collection_name]
+        data = collection.find(filter).limit(num_samples)  # Limitando a 100 resultados
+        response = [{**elem, '_id': str(elem['_id'])} for elem in data]
+        return response
+
+
+
+    def count_sentiments(self) -> Dict:
+        db_handler = current_app.config['db_handler']
+        collection = db_handler.get_db_connection()[self.__collection_name]
+        
+        pipeline = [
+            {"$group": {"_id": "$sentiment", "count": {"$sum": 1}}}
+        ]
+        
+        result = collection.aggregate(pipeline)
+        
+        sentiment_counts = {entry['_id']: entry['count'] for entry in result}
+        
+        total_documents = sum(sentiment_counts.values())
+        positive_count = sentiment_counts.get('Positive', 0)
+        negative_count = sentiment_counts.get('Negative', 0)
+        neutral_count = sentiment_counts.get('Neutral', 0)
+        
+        percentages = {
+            'Positive': positive_count,
+            'Negative': negative_count,
+            'Neutral': neutral_count,
+            'SatisfactionIndex': (positive_count / total_documents) * 100 if total_documents > 0 else 0
+        }
+        
+        return percentages

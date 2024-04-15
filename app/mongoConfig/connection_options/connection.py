@@ -3,9 +3,8 @@ from app.mongoConfig.connection_options.mongo_db_configs import config
 
 class DBconnectionHandler:
     def __init__(self) -> None:
-        self.__conexao_string = 'mongodb://{}:{}/'.format(
-            config["host"],
-            config["port"]
+        self.__conexao_string = 'mongodb+srv://Carcara:{}@cct.rabwqh8.mongodb.net/?retryWrites=true&w=majority&appName=CCT'.format(
+            config["password"]
         )
         self.__database_name = config["db_name"]
         self.__client = None
