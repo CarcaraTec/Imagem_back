@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from app.controller.mapaController import mapa_bp
-from app.controller.calculoController import calculo_bp
+from app.controller.CalculoController import calculo_bp
 from app.controller.graficoController import grafico_bp
 from app.mongoConfig.connection_options.connection import DBconnectionHandler
 
