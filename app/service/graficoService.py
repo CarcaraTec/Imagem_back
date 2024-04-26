@@ -1,4 +1,4 @@
-from app.repository.dadosCollection_repository import DadosCollectionRepository
+from app.repository.reviews_analyzed_repository import ReviewsAnalyzedRepository
 from datetime import datetime
 from collections import Counter
 import nltk
@@ -8,7 +8,7 @@ nltk.download('stopwords')
 class GraficoService:
 
     def __init__(self):
-        self.repository = DadosCollectionRepository()
+        self.repository = ReviewsAnalyzedRepository()
 
     def contar_ocorrencias_por_mes(self, dados, sentiment):
         ocorrencias_por_mes = {month: 0 for month in range(1, 13)}
@@ -40,7 +40,7 @@ class GraficoService:
         return sentiment_data
     
 
-    def gerar_top_5_insights(self):
+    def gerar_top_5_insights_problems(self):
         filtro = {'sentiment': 'Negative'}
         dados = self.repository.select_first(filtro, 1000)
         objects = []
@@ -88,3 +88,7 @@ class GraficoService:
             return ' '.join(filtered_words)
         else:
             return ''
+        
+
+    def gerar_topo_5_hoteis_mais_bem_avaliados(self):
+        return self.repository.top_5_hoteis_mais_bem_avaliados()

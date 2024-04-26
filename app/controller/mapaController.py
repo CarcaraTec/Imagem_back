@@ -14,9 +14,3 @@ def mapa_de_calor():
 def mapa_com_marcador():
     mapa_renderizado = mapa_service.gerar_mapa_marcador()
     return mapa_renderizado
-
-@mapa_bp.route('/insert', methods=['POST'])
-def insert_data():
-    data = request.json
-    result = mapa_service.insert_document(data)
-    return jsonify(result), 201

@@ -10,4 +10,9 @@ def gerar_grafico():
 
 @grafico_bp.route("/comentarios", methods=['GET'])
 def resgatar_comentarios():
-    return grafico_service.gerar_top_5_insights()
+    return grafico_service.gerar_top_5_insights_problems()
+
+@grafico_bp.route("/hoteis/bem-avaliados", methods=['GET'])
+def top_hoteis_bem_avaliados():
+    return grafico_service.gerar_topo_5_hoteis_mais_bem_avaliados()
+
