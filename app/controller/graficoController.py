@@ -16,3 +16,6 @@ def resgatar_comentarios():
 def top_hoteis_bem_avaliados():
     return grafico_service.gerar_topo_5_hoteis_mais_bem_avaliados()
 
+@grafico_bp.route("hoteis/mal-avaliados", methods=['GET'])
+def top_5_hoteis_mal_avaliados():
+    return grafico_service.gerar_topo_5_hoteis_mais_mal_avaliados()

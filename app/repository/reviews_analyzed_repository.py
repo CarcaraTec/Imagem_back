@@ -69,23 +69,40 @@ class ReviewsAnalyzedRepository:
         
         return percentages
     
-    from bson.son import SON
-
     def top_5_hoteis_mais_bem_avaliados(self) -> List[Dict]:
         db_handler = current_app.config['db_handler']
         collection = db_handler.get_db_connection()[self.__collection_name]
 
         pipeline = [
-            {"$group": {"_id": "$Hotel_Name", "average_score": {"$avg": "$Average_Score"}}},
-            {"$sort": {"average_score": -1}},
+            {"$group": {"_id": "$Hotel_Name", "average_score": {"$avg": "$Average_Score"}, "total_reviews": {"$sum": 1}}},
+            {"$sort": {"average_score": -1, "total_reviews": -1}},
             {"$limit": 5}
         ]
 
         result = list(collection.aggregate(pipeline))
 
-        top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": entry["average_score"]} for entry in result]
+        top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": entry["average_score"], "Total_Reviews": entry["total_reviews"]} for entry in result]
 
         return top_5_hotels
+
+    
+
+    def top_5_hoteis_mais_mal_avaliados(self) -> List[Dict]:
+        db_handler = current_app.config['db_handler']
+        collection = db_handler.get_db_connection()[self.__collection_name]
+
+        pipeline = [
+            {"$group": {"_id": "$Hotel_Name", "average_score": {"$avg": "$Average_Score"}, "total_reviews": {"$sum": 1}}},
+            {"$sort": {"average_score": 1, "total_reviews": 1}},
+            {"$limit": 5}
+        ]
+
+        result = list(collection.aggregate(pipeline))
+
+        top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": entry["average_score"], "Total_Reviews": entry["total_reviews"]} for entry in result]
+
+        return top_5_hotels
+        
         
 
     

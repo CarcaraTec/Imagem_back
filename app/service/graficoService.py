@@ -92,3 +92,6 @@ class GraficoService:
 
     def gerar_topo_5_hoteis_mais_bem_avaliados(self):
         return self.repository.top_5_hoteis_mais_bem_avaliados()
+    
+    def gerar_topo_5_hoteis_mais_mal_avaliados(self):
+        return self.repository.top_5_hoteis_mais_mal_avaliados()
