@@ -1,12 +1,12 @@
 import folium
 from folium.plugins import HeatMap
-from app.repository.dadosCollection_repository import DadosCollectionRepository
+from app.repository.reviews_analyzed_repository import ReviewsAnalyzedRepository
 import math
 
 class MapaService:
 
     def __init__(self):
-        self.repository = DadosCollectionRepository()
+        self.repository = ReviewsAnalyzedRepository()
 
     def gerar_mapa_de_calor(self, sentimento: str = None) -> str:
         m = folium.Map([47.3, 8.5], zoom_start=5)

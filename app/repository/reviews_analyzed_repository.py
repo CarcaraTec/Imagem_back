@@ -3,8 +3,7 @@ from typing import Dict, List
 from flask import current_app
 import random
 
-
-class DadosCollectionRepository:    
+class ReviewsAnalyzedRepository:    
     def __init__(self) -> None:
         self.__collection_name = "reviews_analyzed"
 
@@ -40,11 +39,9 @@ class DadosCollectionRepository:
     def select_first(self, filter,num_samples: int) -> List[Dict]:
         db_handler = current_app.config['db_handler']
         collection = db_handler.get_db_connection()[self.__collection_name]
-        data = collection.find(filter).limit(num_samples)  # Limitando a 100 resultados
+        data = collection.find(filter).limit(num_samples) 
         response = [{**elem, '_id': str(elem['_id'])} for elem in data]
         return response
-
-
 
     def count_sentiments(self) -> Dict:
         db_handler = current_app.config['db_handler']
@@ -71,3 +68,42 @@ class DadosCollectionRepository:
         }
         
         return percentages
+    
+    def top_5_hoteis_mais_bem_avaliados(self) -> List[Dict]:
+        db_handler = current_app.config['db_handler']
+        collection = db_handler.get_db_connection()[self.__collection_name]
+
+        pipeline = [
+            {"$group": {"_id": "$Hotel_Name", "average_score": {"$avg": "$Average_Score"}, "total_reviews": {"$sum": 1}}},
+            {"$sort": {"average_score": -1, "total_reviews": -1}},
+            {"$limit": 5}
+        ]
+
+        result = list(collection.aggregate(pipeline))
+
+        top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": entry["average_score"], "Total_Reviews": entry["total_reviews"]} for entry in result]
+
+        return top_5_hotels
+
+    
+
+    def top_5_hoteis_mais_mal_avaliados(self) -> List[Dict]:
+        db_handler = current_app.config['db_handler']
+        collection = db_handler.get_db_connection()[self.__collection_name]
+
+        pipeline = [
+            {"$group": {"_id": "$Hotel_Name", "average_score": {"$avg": "$Average_Score"}, "total_reviews": {"$sum": 1}}},
+            {"$sort": {"average_score": 1, "total_reviews": 1}},
+            {"$limit": 5}
+        ]
+
+        result = list(collection.aggregate(pipeline))
+
+        top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": entry["average_score"], "Total_Reviews": entry["total_reviews"]} for entry in result]
+
+        return top_5_hotels
+        
+        
+
+    
+        
