@@ -20,7 +20,7 @@ def top_hoteis_bem_avaliados():
 def top_5_hoteis_mal_avaliados():
     return grafico_service.gerar_topo_5_hoteis_mais_mal_avaliados()
 
-@grafico_bp.route("/teste", methods=['GET'])
+@grafico_bp.route("/tipos-viagens", methods=['GET'])
 def tipo_viajantes_controller():
     cidade = request.args.get('cidade') 
     
