@@ -95,3 +95,6 @@ class GraficoService:
     
     def gerar_topo_5_hoteis_mais_mal_avaliados(self):
         return self.repository.top_5_hoteis_mais_mal_avaliados()
+    
+    def tipo_viagens(self, cidade):
+        return self.repository.count_tipo_viagens(cidade)
