@@ -113,15 +113,14 @@ class ReviewsAnalyzedRepository:
         filtro_completo_business = {**filtro_cidade, **filtro_business}
 
         total = collection.count_documents(filtro_cidade)
-        total_registros_leisure = collection.count_documents(filtro_completo_leisure) / total * 100 
-        total_registros_business = collection.count_documents(filtro_completo_business) / total * 100 
-        total_registros_outros = (100 - total_registros_business - total_registros_leisure)
+        leisure = collection.count_documents(filtro_completo_leisure) / total * 100 
+        business = collection.count_documents(filtro_completo_business) / total * 100 
+        outros = (100 - business - leisure)
         
-
         return {"total": total,
-                "total_registros_leisure": round(total_registros_leisure, 2),
-                "total_registros_business": round(total_registros_business, 2),
-                "total_registros_outros": round(total_registros_outros, 2)}
+                "leisure": round(leisure, 2),
+                "business": round(business, 2),
+                "outros": round(outros, 2)}
 
     
 
