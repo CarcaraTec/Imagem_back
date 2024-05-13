@@ -139,20 +139,22 @@ class ReviewsAnalyzedRepository:
         ]
 
         resultado = collection.aggregate(pipeline)
-        positivos = 0
-        negativos = 0
+
+        total_registros = 0
+        sentiment_counts = {"Positive": 0, "Negative": 0, "Neutral": 0}
 
         for doc in resultado:
-            if doc["_id"] == "Positive":
-                positivos = doc["count"]
-            elif doc["_id"] == "Negative":
-                negativos = doc["count"]
-            elif doc["_id"] == "Neutral":
-                neutros = doc["count"]
+            total_registros += doc["count"]
+            if doc["_id"] in sentiment_counts:
+                sentiment_counts[doc["_id"]] = doc["count"]
+
+        porcentagem_positivos = (sentiment_counts["Positive"] / total_registros) * 100 if total_registros > 0 else 0
+        porcentagem_negativos = (sentiment_counts["Negative"] / total_registros) * 100 if total_registros > 0 else 0
+        porcentagem_neutros = (sentiment_counts["Neutral"] / total_registros) * 100 if total_registros > 0 else 0
 
         return {
-            "positivos": positivos,
-            "negativos": negativos,
-            "neutros": neutros
+            "positivos": round(porcentagem_positivos, 2),
+            "negativos": round(porcentagem_negativos, 2),
+            "neutros": round(porcentagem_neutros, 2)
         }
-        
+            
