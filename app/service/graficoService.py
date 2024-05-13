@@ -89,7 +89,6 @@ class GraficoService:
         else:
             return ''
         
-
     def gerar_topo_5_hoteis_mais_bem_avaliados(self):
         return self.repository.top_5_hoteis_mais_bem_avaliados()
     
@@ -98,3 +97,7 @@ class GraficoService:
     
     def tipo_viagens(self, cidade):
         return self.repository.count_tipo_viagens(cidade)
+    
+    def comparativo_sentimentos_tipo_viagens(self, cidade):
+        return self.repository.comparativo_sentimentos_tipo_viagens(cidade)
+
