@@ -101,8 +101,8 @@ class ReviewsAnalyzedRepository:
         filtro_completo_business = {**filtro_cidade, **filtro_business}
 
         total = collection.count_documents(filtro_cidade)
-        leisure = collection.count_documents(filtro_completo_leisure) / total * 100 
-        business = collection.count_documents(filtro_completo_business) / total * 100 
+        leisure = collection.count_documents(filtro_completo_leisure) / total * 100 if total > 0 else 0
+        business = collection.count_documents(filtro_completo_business) / total * 100 if total > 0 else 0   
         outros = (100 - business - leisure)
         
         return {"total": total,
