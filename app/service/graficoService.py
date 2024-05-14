@@ -149,4 +149,23 @@ class GraficoService:
             "negativos": round(porcentagem_negativos, 2),
             "neutros": round(porcentagem_neutros, 2)
         }
+    
+    def count_companhia_viagem(self, cidade):
+        filtro_cidade = self.repository.build_filtro_cidade(cidade)
+
+        filtro_companhia_familia = self.repository.build_filtro_regex_tags('Family')
+        filtro_companhia_casal = self.repository.build_filtro_regex_tags('Couple')
+        filtro_companhia_sozinho = self.repository.build_filtro_regex_tags('Solo')
+
+        count_familia = self.repository.count_documents({**filtro_cidade, **filtro_companhia_familia})
+        count_sozinho = self.repository.count_documents({**filtro_cidade, **filtro_companhia_sozinho})
+        count_casal = self.repository.count_documents({**filtro_cidade, **filtro_companhia_casal})
+
+        total = count_familia + count_sozinho + count_casal
+
+        return {
+            "familia": round((count_familia / total) * 100, 2),
+            "sozinho": round((count_sozinho / total) * 100, 2),
+            "casal": round((count_casal / total) * 100, 2)
+        }
 

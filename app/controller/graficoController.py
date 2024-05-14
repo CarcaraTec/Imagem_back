@@ -21,13 +21,21 @@ def top_5_hoteis_mal_avaliados():
     return grafico_service.gerar_topo_5_hoteis_mais_mal_avaliados()
 
 @grafico_bp.route("/tipos-viagens", methods=['GET'])
-def tipo_viajantes_controller():
+def tipo_viajantes():
     cidade = request.args.get('cidade') 
     resultado = grafico_service.count_tipo_viagens(cidade)
     return resultado  
 
 @grafico_bp.route("/comparativo-viagens", methods=['GET'])
-def comparativo_viajantes_controller():
+def comparativo_viajantes():
     cidade = request.args.get('cidade') 
     resultado = grafico_service.comparativo_sentimentos_tipo_viagens(cidade)
     return resultado  
+
+
+@grafico_bp.route("/companhia-viagens", methods=['GET'])
+def companhia_viajantes():
+    cidade = request.args.get('cidade') 
+    resultado = grafico_service.count_companhia_viagem(cidade)
+    return resultado  
+

@@ -111,34 +111,4 @@ class ReviewsAnalyzedRepository:
         return resultado
 
     
-    def _count_companhia_viagem(self, filtro_cidade, filtro_companhia):
-        db_handler = current_app.config['db_handler']
-        collection = db_handler.get_db_connection()[self.__collection_name]
-
-        filtro_completo = {**filtro_cidade, **filtro_companhia}
-
-        count = collection.count_documents(filtro_completo)
-        return count
-
-    def count_companhia_viagem(self, cidade):
-        filtro_cidade = self.build_filtro_cidade(cidade)
-
-        filtro_companhia_pets = self.build_filtro_regex_tags('Pet')
-        filtro_companhia_familia = self.build_filtro_regex_tags('Family')
-        filtro_companhia_casal = self.build_filtro_regex_tags('Couple')
-        filtro_companhia_sozinho = self.build_filtro_regex_tags('Solo')
-
-        count_familia = self._count_companhia_viagem(filtro_cidade, filtro_companhia_familia)
-        count_sozinho = self._count_companhia_viagem(filtro_cidade, filtro_companhia_sozinho)
-        count_casal = self._count_companhia_viagem(filtro_cidade, filtro_companhia_casal)
-        count_pets = self._count_companhia_viagem(filtro_cidade, filtro_companhia_pets)
-
-        total = count_familia + count_sozinho + count_casal + count_pets
-
-        return {
-            "familia": (count_familia / total) * 100,
-            "sozinho": (count_sozinho / total) * 100,
-            "casal": (count_casal / total) * 100,
-            "pets": (count_pets / total) * 100
-        }
 
