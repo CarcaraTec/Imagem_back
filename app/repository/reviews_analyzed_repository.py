@@ -6,11 +6,11 @@ class ReviewsAnalyzedRepository:
     def __init__(self) -> None:
         self.__collection_name = "reviews_analyzed"
 
-    def build_filtro_tipo_viagem(self, tipo_viagem: str) -> dict:
-        return {"Tags": {"$regex": tipo_viagem}}
+    def build_filtro_regex_tags(self, regex: str) -> dict:
+        return {"Tags": {"$regex": regex, "$options": "i"}}
 
     def build_filtro_cidade(self, cidade: str) -> dict:
-        return {"Hotel_Address": {"$regex": cidade}} if cidade else {}
+        return {"Hotel_Address": {"$regex": cidade, "$options": "i"}} if cidade else {}
     
     def select_many(self, filter) -> List[Dict]:
         db_handler = current_app.config['db_handler']
@@ -94,8 +94,8 @@ class ReviewsAnalyzedRepository:
         collection = db_handler.get_db_connection()[self.__collection_name]
 
         filtro_cidade = self.build_filtro_cidade(cidade)
-        filtro_leisure = self.build_filtro_tipo_viagem('Leisure trip')
-        filtro_business = self.build_filtro_tipo_viagem('Business trip')
+        filtro_leisure = self.build_filtro_regex_tags('Leisure trip')
+        filtro_business = self.build_filtro_regex_tags('Business trip')
 
         filtro_completo_leisure = {**filtro_cidade, **filtro_leisure}
         filtro_completo_business = {**filtro_cidade, **filtro_business}
@@ -110,24 +110,9 @@ class ReviewsAnalyzedRepository:
                 "business": round(business, 2),
                 "outros": round(outros, 2)}
     
-    def comparativo_sentimentos_tipo_viagens(self, cidade):
-        filtro_cidade = self.build_filtro_cidade(cidade)
-        filtro_leisure = self.build_filtro_tipo_viagem('Leisure trip')
-        filtro_business = self.build_filtro_tipo_viagem('Business trip')
-        filtro_outros = {"$nor": [filtro_leisure, filtro_business]}
-
-        resultados = {
-            "leisure": self._contagem_sentimentos_para_tipo_viagem(filtro_cidade, filtro_leisure),
-            "business": self._contagem_sentimentos_para_tipo_viagem(filtro_cidade, filtro_business),
-            "outros": self._contagem_sentimentos_para_tipo_viagem(filtro_cidade, filtro_outros)
-        }
-
-        return resultados
-
-    def _contagem_sentimentos_para_tipo_viagem(self, filtro_cidade, filtro_tipo_viagem):
+    def contagem_sentimentos_para_tipo_viagem(self, filtro_cidade, filtro_tipo_viagem):
         db_handler = current_app.config['db_handler']
         collection = db_handler.get_db_connection()[self.__collection_name]
-
         filtro_completo = {**filtro_cidade, **filtro_tipo_viagem}
 
         pipeline = [
@@ -139,22 +124,37 @@ class ReviewsAnalyzedRepository:
         ]
 
         resultado = collection.aggregate(pipeline)
+        return resultado
 
-        total_registros = 0
-        sentiment_counts = {"Positive": 0, "Negative": 0, "Neutral": 0}
+    
+    def _count_companhia_viagem(self, filtro_cidade, filtro_companhia):
+        db_handler = current_app.config['db_handler']
+        collection = db_handler.get_db_connection()[self.__collection_name]
 
-        for doc in resultado:
-            total_registros += doc["count"]
-            if doc["_id"] in sentiment_counts:
-                sentiment_counts[doc["_id"]] = doc["count"]
+        filtro_completo = {**filtro_cidade, **filtro_companhia}
 
-        porcentagem_positivos = (sentiment_counts["Positive"] / total_registros) * 100 if total_registros > 0 else 0
-        porcentagem_negativos = (sentiment_counts["Negative"] / total_registros) * 100 if total_registros > 0 else 0
-        porcentagem_neutros = (sentiment_counts["Neutral"] / total_registros) * 100 if total_registros > 0 else 0
+        count = collection.count_documents(filtro_completo)
+        return count
+
+    def count_companhia_viagem(self, cidade):
+        filtro_cidade = self.build_filtro_cidade(cidade)
+
+        filtro_companhia_pets = self.build_filtro_regex_tags('Pet')
+        filtro_companhia_familia = self.build_filtro_regex_tags('Family')
+        filtro_companhia_casal = self.build_filtro_regex_tags('Couple')
+        filtro_companhia_sozinho = self.build_filtro_regex_tags('Solo')
+
+        count_familia = self._count_companhia_viagem(filtro_cidade, filtro_companhia_familia)
+        count_sozinho = self._count_companhia_viagem(filtro_cidade, filtro_companhia_sozinho)
+        count_casal = self._count_companhia_viagem(filtro_cidade, filtro_companhia_casal)
+        count_pets = self._count_companhia_viagem(filtro_cidade, filtro_companhia_pets)
+
+        total = count_familia + count_sozinho + count_casal + count_pets
 
         return {
-            "positivos": round(porcentagem_positivos, 2),
-            "negativos": round(porcentagem_negativos, 2),
-            "neutros": round(porcentagem_neutros, 2)
+            "familia": (count_familia / total) * 100,
+            "sozinho": (count_sozinho / total) * 100,
+            "casal": (count_casal / total) * 100,
+            "pets": (count_pets / total) * 100
         }
-            
+

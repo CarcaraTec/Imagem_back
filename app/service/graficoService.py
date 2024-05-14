@@ -99,5 +99,37 @@ class GraficoService:
         return self.repository.count_tipo_viagens(cidade)
     
     def comparativo_sentimentos_tipo_viagens(self, cidade):
-        return self.repository.comparativo_sentimentos_tipo_viagens(cidade)
+        filtro_cidade = self.repository.build_filtro_cidade(cidade)
+        filtro_leisure = self.repository.build_filtro_regex_tags('Leisure trip')
+        filtro_business = self.repository.build_filtro_regex_tags('Business trip')
+        filtro_outros = {"$nor": [filtro_leisure, filtro_business]}
+
+        resultados = {
+            "leisure": self._processar_sentimentos(filtro_cidade, filtro_leisure),
+            "business": self._processar_sentimentos(filtro_cidade, filtro_business),
+            "outros": self._processar_sentimentos(filtro_cidade, filtro_outros)
+        }
+
+        return resultados
+
+    def _processar_sentimentos(self, filtro_cidade, filtro_tipo_viagem):
+        resultado = self.repository.contagem_sentimentos_para_tipo_viagem(filtro_cidade, filtro_tipo_viagem)
+
+        total_registros = 0
+        sentiment_counts = {"Positive": 0, "Negative": 0, "Neutral": 0}
+
+        for doc in resultado:
+            total_registros += doc["count"]
+            if doc["_id"] in sentiment_counts:
+                sentiment_counts[doc["_id"]] = doc["count"]
+
+        porcentagem_positivos = (sentiment_counts["Positive"] / total_registros) * 100 if total_registros > 0 else 0
+        porcentagem_negativos = (sentiment_counts["Negative"] / total_registros) * 100 if total_registros > 0 else 0
+        porcentagem_neutros = (sentiment_counts["Neutral"] / total_registros) * 100 if total_registros > 0 else 0
+
+        return {
+            "positivos": round(porcentagem_positivos, 2),
+            "negativos": round(porcentagem_negativos, 2),
+            "neutros": round(porcentagem_neutros, 2)
+        }
 
