@@ -6,11 +6,11 @@ class ReviewsAnalyzedRepository:
     def __init__(self) -> None:
         self.__collection_name = "reviews_analyzed"
 
-    def build_filtro_tipo_viagem(self, tipo_viagem: str) -> dict:
-        return {"Tags": {"$regex": tipo_viagem}}
+    def build_filtro_regex_tags(self, regex: str) -> dict:
+        return {"Tags": {"$regex": regex, "$options": "i"}}
 
     def build_filtro_cidade(self, cidade: str) -> dict:
-        return {"Hotel_Address": {"$regex": cidade}} if cidade else {}
+        return {"Hotel_Address": {"$regex": cidade, "$options": "i"}} if cidade else {}
     
     def select_many(self, filter) -> List[Dict]:
         db_handler = current_app.config['db_handler']
@@ -89,45 +89,14 @@ class ReviewsAnalyzedRepository:
         top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": entry["average_score"], "Total_Reviews": entry["total_reviews"]} for entry in result]
         return top_5_hotels
     
-    def count_tipo_viagens(self, cidade=None) -> Dict:
+    def count_documents(self, filtro) -> Dict:
         db_handler = current_app.config['db_handler']
         collection = db_handler.get_db_connection()[self.__collection_name]
-
-        filtro_cidade = self.build_filtro_cidade(cidade)
-        filtro_leisure = self.build_filtro_tipo_viagem('Leisure trip')
-        filtro_business = self.build_filtro_tipo_viagem('Business trip')
-
-        filtro_completo_leisure = {**filtro_cidade, **filtro_leisure}
-        filtro_completo_business = {**filtro_cidade, **filtro_business}
-
-        total = collection.count_documents(filtro_cidade)
-        leisure = collection.count_documents(filtro_completo_leisure) / total * 100 
-        business = collection.count_documents(filtro_completo_business) / total * 100 
-        outros = (100 - business - leisure)
-        
-        return {"total": total,
-                "leisure": round(leisure, 2),
-                "business": round(business, 2),
-                "outros": round(outros, 2)}
+        return collection.count_documents(filtro)
     
-    def comparativo_sentimentos_tipo_viagens(self, cidade):
-        filtro_cidade = self.build_filtro_cidade(cidade)
-        filtro_leisure = self.build_filtro_tipo_viagem('Leisure trip')
-        filtro_business = self.build_filtro_tipo_viagem('Business trip')
-        filtro_outros = {"$nor": [filtro_leisure, filtro_business]}
-
-        resultados = {
-            "leisure": self._contagem_sentimentos_para_tipo_viagem(filtro_cidade, filtro_leisure),
-            "business": self._contagem_sentimentos_para_tipo_viagem(filtro_cidade, filtro_business),
-            "outros": self._contagem_sentimentos_para_tipo_viagem(filtro_cidade, filtro_outros)
-        }
-
-        return resultados
-
-    def _contagem_sentimentos_para_tipo_viagem(self, filtro_cidade, filtro_tipo_viagem):
+    def contagem_sentimentos_para_tipo_viagem(self, filtro_cidade, filtro_tipo_viagem):
         db_handler = current_app.config['db_handler']
         collection = db_handler.get_db_connection()[self.__collection_name]
-
         filtro_completo = {**filtro_cidade, **filtro_tipo_viagem}
 
         pipeline = [
@@ -139,20 +108,7 @@ class ReviewsAnalyzedRepository:
         ]
 
         resultado = collection.aggregate(pipeline)
-        positivos = 0
-        negativos = 0
+        return resultado
 
-        for doc in resultado:
-            if doc["_id"] == "Positive":
-                positivos = doc["count"]
-            elif doc["_id"] == "Negative":
-                negativos = doc["count"]
-            elif doc["_id"] == "Neutral":
-                neutros = doc["count"]
+    
 
-        return {
-            "positivos": positivos,
-            "negativos": negativos,
-            "neutros": neutros
-        }
-        
