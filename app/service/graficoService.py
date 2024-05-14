@@ -95,8 +95,25 @@ class GraficoService:
     def gerar_topo_5_hoteis_mais_mal_avaliados(self):
         return self.repository.top_5_hoteis_mais_mal_avaliados()
     
-    def tipo_viagens(self, cidade):
-        return self.repository.count_tipo_viagens(cidade)
+    def count_tipo_viagens(self, cidade=None):
+        filtro_cidade = self.repository.build_filtro_cidade(cidade)
+        filtro_leisure = self.repository.build_filtro_regex_tags('Leisure trip')
+        filtro_business = self.repository.build_filtro_regex_tags('Business trip')
+
+        filtro_completo_leisure = {**filtro_cidade, **filtro_leisure}
+        filtro_completo_business = {**filtro_cidade, **filtro_business}
+
+        total = self.repository.count_documents(filtro_cidade)
+        leisure = self.repository.count_documents(filtro_completo_leisure) / total * 100 if total > 0 else 0
+        business = self.repository.count_documents(filtro_completo_business) / total * 100 if total > 0 else 0   
+        outros = 100 - business - leisure
+        
+        return {
+            "total": total,
+            "leisure": round(leisure, 2),
+            "business": round(business, 2),
+            "outros": round(outros, 2)
+        }
     
     def comparativo_sentimentos_tipo_viagens(self, cidade):
         filtro_cidade = self.repository.build_filtro_cidade(cidade)

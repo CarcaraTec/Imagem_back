@@ -89,26 +89,10 @@ class ReviewsAnalyzedRepository:
         top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": entry["average_score"], "Total_Reviews": entry["total_reviews"]} for entry in result]
         return top_5_hotels
     
-    def count_tipo_viagens(self, cidade=None) -> Dict:
+    def count_documents(self, filtro) -> Dict:
         db_handler = current_app.config['db_handler']
         collection = db_handler.get_db_connection()[self.__collection_name]
-
-        filtro_cidade = self.build_filtro_cidade(cidade)
-        filtro_leisure = self.build_filtro_regex_tags('Leisure trip')
-        filtro_business = self.build_filtro_regex_tags('Business trip')
-
-        filtro_completo_leisure = {**filtro_cidade, **filtro_leisure}
-        filtro_completo_business = {**filtro_cidade, **filtro_business}
-
-        total = collection.count_documents(filtro_cidade)
-        leisure = collection.count_documents(filtro_completo_leisure) / total * 100 if total > 0 else 0
-        business = collection.count_documents(filtro_completo_business) / total * 100 if total > 0 else 0   
-        outros = (100 - business - leisure)
-        
-        return {"total": total,
-                "leisure": round(leisure, 2),
-                "business": round(business, 2),
-                "outros": round(outros, 2)}
+        return collection.count_documents(filtro)
     
     def contagem_sentimentos_para_tipo_viagem(self, filtro_cidade, filtro_tipo_viagem):
         db_handler = current_app.config['db_handler']
