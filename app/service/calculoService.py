@@ -6,8 +6,11 @@ class CalculoService:
     def __init__(self):
         self.repository = ReviewsAnalyzedRepository()
 
-    def count_sentiments(self) -> Dict:
-        sentiment_counts = self.repository.get_sentiment_counts()
+    def count_sentiments(self, cidade=None, data_inicio=None, data_fim=None) -> Dict:
+        filtro_cidade = self.repository.build_filtro_cidade(cidade)
+        filtro_data = self.repository.build_filtro_data(data_inicio, data_fim)
+
+        sentiment_counts = self.repository.get_sentiment_counts(filtro_cidade, filtro_data)
         total_documents = sum(sentiment_counts.values())
         positive_count = sentiment_counts.get('Positive', 0)
         negative_count = sentiment_counts.get('Negative', 0)

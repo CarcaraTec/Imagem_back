@@ -18,7 +18,10 @@ class ReviewsAnalyzedRepository:
     def build_filtro_cidade(self, cidade: str) -> dict:
         return {"Hotel_Address": {"$regex": cidade, "$options": "i"}} if cidade else {}
     
-    def build_filtro_data(self, data_inicio: str, data_fim: str) -> dict:
+    def build_filtro_data(self, data_inicio: str = None, data_fim: str = None) -> dict:
+        if not data_inicio or not data_fim:
+            return {}
+
         inicio_datetime = datetime.strptime(data_inicio, "%m/%Y")
         fim_datetime = datetime.strptime(data_fim, "%m/%Y")
 
@@ -72,34 +75,34 @@ class ReviewsAnalyzedRepository:
         sentiment_counts = {entry['_id']: entry['count'] for entry in result}
         return sentiment_counts
     
-    def get_top_5_hotels_mais_bem_avaliados(self, cidade=None, data_inicio=None, data_fim=None):
+    def get_top_5_hotels_mais_bem_avaliados(self, filtro_cidade, filtro_data):
         collection = self.get_collection()
-        
-        filtro_cidade = self.build_filtro_cidade(cidade)
 
-        pipeline = []
-        pipeline.append({"$match": filtro_cidade})
+        filtro_completo = {**filtro_cidade, **filtro_data}
 
-        if data_inicio and data_fim:
-            filtro_data = self.build_filtro_data(data_inicio, data_fim)
-            pipeline.append({"$match": filtro_data})
-
-        pipeline.extend([
+        pipeline =[
+            {"$match": filtro_completo},
             {"$group": {"_id": "$Hotel_Name", "average_score": {"$avg": "$Reviewer_Score"}, "total_reviews": {"$sum": 1}}},
             {"$sort": {"average_score": -1, "Hotel_Name": -1, "total_reviews": -1}},
             {"$limit": 5}
-        ])
+        ]
 
         result = list(collection.aggregate(pipeline))
         return result
 
-    def get_top_5_hotels_mais_mal_avaliados(self):
+    def get_top_5_hotels_mais_mal_avaliados(self, filtro_cidade, filtro_data):
         collection = self.get_collection()
-        pipeline = [
+
+        filtro_completo = {**filtro_cidade, **filtro_data}
+
+        pipeline =[
+            {"$match": filtro_completo},
             {"$group": {"_id": "$Hotel_Name", "average_score": {"$avg": "$Reviewer_Score"}, "total_reviews": {"$sum": 1}}},
             {"$sort": {"average_score": 1, "Hotel_Name": 1, "total_reviews": 1}},
             {"$limit": 5}
         ]
+
+        print(pipeline)
         result = list(collection.aggregate(pipeline))
         return result
     
