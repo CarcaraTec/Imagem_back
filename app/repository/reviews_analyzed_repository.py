@@ -19,16 +19,13 @@ class ReviewsAnalyzedRepository:
         return {"Hotel_Address": {"$regex": cidade, "$options": "i"}} if cidade else {}
     
     def build_filtro_data(self, data_inicio: str, data_fim: str) -> dict:
-    # Converte strings "MM/YYYY" para objetos datetime
         inicio_datetime = datetime.strptime(data_inicio, "%m/%Y")
         fim_datetime = datetime.strptime(data_fim, "%m/%Y")
 
-        # Ajusta fim_datetime para o último dia do mês
         fim_datetime = fim_datetime.replace(
             day=calendar.monthrange(fim_datetime.year, fim_datetime.month)[1]
         )
 
-        # Converte datetime para strings no formato "MM/DD/YYYY"
         inicio_str = inicio_datetime.strftime("%m/%d/%Y")
         fim_str = fim_datetime.strftime("%m/%d/%Y")
 
@@ -75,14 +72,23 @@ class ReviewsAnalyzedRepository:
         sentiment_counts = {entry['_id']: entry['count'] for entry in result}
         return sentiment_counts
     
-    def get_top_5_hotels_mais_bem_avaliados(self):
+    def get_top_5_hotels_mais_bem_avaliados(self, cidade=None, data_inicio=None, data_fim=None):
         collection = self.get_collection()
+        
+        filtro_cidade = self.build_filtro_cidade(cidade)
 
-        pipeline = [
-            {"$group": {"_id": "$Hotel_Name", "average_score": {"$avg": "$Average_Score"}, "total_reviews": {"$sum": 1}}},
+        pipeline = []
+        pipeline.append({"$match": filtro_cidade})
+
+        if data_inicio and data_fim:
+            filtro_data = self.build_filtro_data(data_inicio, data_fim)
+            pipeline.append({"$match": filtro_data})
+
+        pipeline.extend([
+            {"$group": {"_id": "$Hotel_Name", "average_score": {"$avg": "$Reviewer_Score"}, "total_reviews": {"$sum": 1}}},
             {"$sort": {"average_score": -1, "Hotel_Name": -1, "total_reviews": -1}},
             {"$limit": 5}
-        ]
+        ])
 
         result = list(collection.aggregate(pipeline))
         return result
@@ -90,7 +96,7 @@ class ReviewsAnalyzedRepository:
     def get_top_5_hotels_mais_mal_avaliados(self):
         collection = self.get_collection()
         pipeline = [
-            {"$group": {"_id": "$Hotel_Name", "average_score": {"$avg": "$Average_Score"}, "total_reviews": {"$sum": 1}}},
+            {"$group": {"_id": "$Hotel_Name", "average_score": {"$avg": "$Reviewer_Score"}, "total_reviews": {"$sum": 1}}},
             {"$sort": {"average_score": 1, "Hotel_Name": 1, "total_reviews": 1}},
             {"$limit": 5}
         ]

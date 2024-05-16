@@ -88,14 +88,14 @@ class GraficoService:
         else:
             return ''
         
-    def gerar_top_5_hoteis_mais_bem_avaliados(self):
-        result = self.repository.get_top_5_hotels_mais_bem_avaliados()
-        top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": entry["average_score"], "Total_Reviews": entry["total_reviews"]} for entry in result]
+    def gerar_top_5_hoteis_mais_bem_avaliados(self, cidade=None, data_inicio=None, data_fim=None):
+        result = self.repository.get_top_5_hotels_mais_bem_avaliados(cidade, data_inicio, data_fim)
+        top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": round(entry["average_score"], 2), "Total_Reviews": entry["total_reviews"]} for entry in result]
         return top_5_hotels
     
-    def gerar_top_5_hoteis_mais_mal_avaliados(self):
-        result = self.repository.get_top_5_hotels_mais_mal_avaliados()
-        top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": entry["average_score"], "Total_Reviews": entry["total_reviews"]} for entry in result]
+    def gerar_top_5_hoteis_mais_mal_avaliados(self, cidade=None, data_inicio=None, data_fim=None):
+        result = self.repository.get_top_5_hotels_mais_mal_avaliados(cidade, data_inicio, data_fim)
+        top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": round(entry["average_score"], 2), "Total_Reviews": entry["total_reviews"]} for entry in result]
         return top_5_hotels
     
     def count_tipo_viagens(self, cidade=None, data_inicio=None, data_fim=None):
