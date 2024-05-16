@@ -31,7 +31,7 @@ class GraficoService:
         filtro_data = self.repository.build_filtro_data(data_inicio, data_fim)
         filtro_leisure = self.repository.build_filtro_regex_tags('Leisure trip')
         filtro_business = self.repository.build_filtro_regex_tags('Business trip')
-        
+
         filtro_completo_leisure = {**filtro_cidade, **filtro_data, **filtro_leisure}
         filtro_completo_business = {**filtro_cidade, **filtro_data, **filtro_business}
         filtro_completo_cidade_data = {**filtro_cidade, **filtro_data}
@@ -49,22 +49,23 @@ class GraficoService:
         }
 
     
-    def comparativo_sentimentos_tipo_viagens(self, cidade):
+    def comparativo_sentimentos_tipo_viagens(self, cidade=None, data_inicio=None, data_fim=None):
         filtro_cidade = self.repository.build_filtro_cidade(cidade)
         filtro_leisure = self.repository.build_filtro_regex_tags('Leisure trip')
         filtro_business = self.repository.build_filtro_regex_tags('Business trip')
+        filtro_data = self.repository.build_filtro_data(data_inicio, data_fim)
         filtro_outros = {"$nor": [filtro_leisure, filtro_business]}
 
         resultados = {
-            "leisure": self._processar_sentimentos(filtro_cidade, filtro_leisure),
-            "business": self._processar_sentimentos(filtro_cidade, filtro_business),
-            "outros": self._processar_sentimentos(filtro_cidade, filtro_outros)
+            "leisure": self._processar_sentimentos(filtro_cidade, filtro_data, filtro_leisure),
+            "business": self._processar_sentimentos(filtro_cidade, filtro_data, filtro_business),
+            "outros": self._processar_sentimentos(filtro_cidade, filtro_data, filtro_outros)
         }
 
         return resultados
 
-    def _processar_sentimentos(self, filtro_cidade, filtro_tipo_viagem):
-        resultado = self.repository.contagem_sentimentos_para_tipo_viagem(filtro_cidade, filtro_tipo_viagem)
+    def _processar_sentimentos(self, filtro_cidade, filtro_data, filtro_tipo_viagem):
+        resultado = self.repository.contagem_sentimentos_para_tipo_viagem(filtro_cidade, filtro_data, filtro_tipo_viagem)
 
         total_registros = 0
         sentiment_counts = {"Positive": 0, "Negative": 0, "Neutral": 0}

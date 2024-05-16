@@ -22,22 +22,26 @@ class ReviewsAnalyzedRepository:
         if not data_inicio or not data_fim:
             return {}
 
+        # Converte as strings de data para objetos datetime
         inicio_datetime = datetime.strptime(data_inicio, "%m/%Y")
         fim_datetime = datetime.strptime(data_fim, "%m/%Y")
 
-        fim_datetime = fim_datetime.replace(
-            day=calendar.monthrange(fim_datetime.year, fim_datetime.month)[1]
-        )
+        # Ajusta fim_datetime para ser o último dia do mês
+        fim_do_mes = calendar.monthrange(fim_datetime.year, fim_datetime.month)[1]
+        fim_datetime = fim_datetime.replace(day=fim_do_mes)
 
-        inicio_str = inicio_datetime.strftime("%m/%d/%Y")
-        fim_str = fim_datetime.strftime("%m/%d/%Y")
-
+        # Retorna o filtro com objetos datetime para o MongoDB
         return {
             "Review_Date": {
-                "$gte": inicio_str,
-                "$lte": fim_str
+                "$gte": inicio_datetime,
+                "$lte": fim_datetime
             }
         }
+
+    def format_data_sem_zeros(self, dt: datetime) -> str:
+        month = dt.month if dt.month > 9 else f"{dt.month}"
+        day = dt.day if dt.day > 9 else f"{dt.day}"
+        return f"{month}/{day}/{dt.year}"
     
     def select_many(self, filter) -> List[Dict]:
         collection = self.get_collection()
@@ -64,14 +68,19 @@ class ReviewsAnalyzedRepository:
         response = [{**elem, '_id': str(elem['_id'])} for elem in data]
         return response
 
-    def get_sentiment_counts(self) -> Dict[str, int]:
+    def get_sentiment_counts(self, filtro_cidade, filtro_data) -> Dict[str, int]:
         collection = self.get_collection()
 
+        filtro_completo = {**filtro_cidade, **filtro_data}
+
         pipeline = [
+            {"$match": filtro_completo},
             {"$group": {"_id": "$sentiment", "count": {"$sum": 1}}}
         ]
 
+        print(pipeline)
         result = collection.aggregate(pipeline)
+        
         sentiment_counts = {entry['_id']: entry['count'] for entry in result}
         return sentiment_counts
     
@@ -110,10 +119,10 @@ class ReviewsAnalyzedRepository:
         collection = self.get_collection()
         return collection.count_documents(filtro)
     
-    def contagem_sentimentos_para_tipo_viagem(self, filtro_cidade, filtro_tipo_viagem):
+    def contagem_sentimentos_para_tipo_viagem(self, filtro_cidade, filtro_data, filtro_tipo_viagem):
         collection = self.get_collection()
   
-        filtro_completo = {**filtro_cidade, **filtro_tipo_viagem}
+        filtro_completo = {**filtro_cidade, **filtro_data, **filtro_tipo_viagem}
 
         pipeline = [
             {"$match": filtro_completo},
@@ -122,7 +131,7 @@ class ReviewsAnalyzedRepository:
                 "count": {"$sum": 1}
             }}
         ]
-
+        print(pipeline)
         resultado = collection.aggregate(pipeline)
         return resultado
 
