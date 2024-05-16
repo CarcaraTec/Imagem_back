@@ -72,7 +72,6 @@ class GraficoService:
         contagem_palavras = Counter(array_strings)
         palavras_comuns = contagem_palavras.most_common(5)
 
-        
         return palavras_comuns
 
     def remove_stopwords(text,self):
@@ -89,21 +88,35 @@ class GraficoService:
         else:
             return ''
         
-    def gerar_topo_5_hoteis_mais_bem_avaliados(self):
-        return self.repository.top_5_hoteis_mais_bem_avaliados()
+    def gerar_top_5_hoteis_mais_bem_avaliados(self):
+        result = self.repository.get_top_5_hotels_mais_bem_avaliados()
+        top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": entry["average_score"], "Total_Reviews": entry["total_reviews"]} for entry in result]
+        return top_5_hotels
     
-    def gerar_topo_5_hoteis_mais_mal_avaliados(self):
-        return self.repository.top_5_hoteis_mais_mal_avaliados()
+    def gerar_top_5_hoteis_mais_mal_avaliados(self):
+        result = self.repository.get_top_5_hotels_mais_mal_avaliados()
+        top_5_hotels = [{"Hotel_Name": entry["_id"], "Average_Score": entry["average_score"], "Total_Reviews": entry["total_reviews"]} for entry in result]
+        return top_5_hotels
     
-    def count_tipo_viagens(self, cidade=None):
+    def count_tipo_viagens(self, cidade=None, data_inicio=None, data_fim=None):
         filtro_cidade = self.repository.build_filtro_cidade(cidade)
+        
+        if data_inicio and data_fim:
+            filtro_data = self.repository.build_filtro_data(data_inicio, data_fim)
+        else:
+            filtro_data = {}
+
+        print(filtro_data)
+
         filtro_leisure = self.repository.build_filtro_regex_tags('Leisure trip')
         filtro_business = self.repository.build_filtro_regex_tags('Business trip')
 
-        filtro_completo_leisure = {**filtro_cidade, **filtro_leisure}
-        filtro_completo_business = {**filtro_cidade, **filtro_business}
+        filtro_completo_leisure = {**filtro_cidade, **filtro_data, **filtro_leisure}
+        filtro_completo_business = {**filtro_cidade, **filtro_data, **filtro_business}
 
-        total = self.repository.count_documents(filtro_cidade)
+        filtro_completo_cidade_data = {**filtro_cidade, **filtro_data}
+        
+        total = self.repository.count_documents(filtro_completo_cidade_data)
         leisure = self.repository.count_documents(filtro_completo_leisure) / total * 100 if total > 0 else 0
         business = self.repository.count_documents(filtro_completo_business) / total * 100 if total > 0 else 0   
         outros = 100 - business - leisure
@@ -114,6 +127,7 @@ class GraficoService:
             "business": round(business, 2),
             "outros": round(outros, 2)
         }
+
     
     def comparativo_sentimentos_tipo_viagens(self, cidade):
         filtro_cidade = self.repository.build_filtro_cidade(cidade)

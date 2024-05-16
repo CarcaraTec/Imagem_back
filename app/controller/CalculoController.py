@@ -6,4 +6,4 @@ calculo_service = CalculoService()
 
 @calculo_bp.route("/cards")
 def teste():
-    return calculo_service.gerar_calculos_cards()
+    return calculo_service.count_sentiments()
