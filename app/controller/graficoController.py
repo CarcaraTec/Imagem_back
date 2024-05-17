@@ -51,6 +51,8 @@ def comparativo_viajantes():
 @grafico_bp.route("/companhia-viagens", methods=['GET'])
 def companhia_viajantes():
     cidade = request.args.get('cidade') 
-    resultado = grafico_service.count_companhia_viagem(cidade)
+    data_inicio = request.args.get('data_inicio')
+    data_fim = request.args.get('data_fim')     
+    resultado = grafico_service.count_companhia_viagem(cidade, data_inicio, data_fim)
     return jsonify(resultado)  
 
