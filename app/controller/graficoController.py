@@ -41,8 +41,10 @@ def tipo_viajantes():
 
 @grafico_bp.route("/comparativo-viagens", methods=['GET'])
 def comparativo_viajantes():
-    cidade = request.args.get('cidade') 
-    resultado = grafico_service.comparativo_sentimentos_tipo_viagens(cidade)
+    cidade = request.args.get('cidade')
+    data_inicio = request.args.get('data_inicio')
+    data_fim = request.args.get('data_fim') 
+    resultado = grafico_service.comparativo_sentimentos_tipo_viagens(cidade, data_inicio, data_fim)
     return jsonify(resultado)
 
 

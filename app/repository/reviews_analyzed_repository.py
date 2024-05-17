@@ -22,26 +22,18 @@ class ReviewsAnalyzedRepository:
         if not data_inicio or not data_fim:
             return {}
 
-        # Converte as strings de data para objetos datetime
         inicio_datetime = datetime.strptime(data_inicio, "%m/%Y")
         fim_datetime = datetime.strptime(data_fim, "%m/%Y")
 
-        # Ajusta fim_datetime para ser o último dia do mês
         fim_do_mes = calendar.monthrange(fim_datetime.year, fim_datetime.month)[1]
         fim_datetime = fim_datetime.replace(day=fim_do_mes)
 
-        # Retorna o filtro com objetos datetime para o MongoDB
         return {
             "Review_Date": {
                 "$gte": inicio_datetime,
                 "$lte": fim_datetime
             }
         }
-
-    def format_data_sem_zeros(self, dt: datetime) -> str:
-        month = dt.month if dt.month > 9 else f"{dt.month}"
-        day = dt.day if dt.day > 9 else f"{dt.day}"
-        return f"{month}/{day}/{dt.year}"
     
     def select_many(self, filter) -> List[Dict]:
         collection = self.get_collection()
@@ -115,9 +107,11 @@ class ReviewsAnalyzedRepository:
         result = list(collection.aggregate(pipeline))
         return result
     
-    def count_documents(self, filtro) -> Dict:
+    def count_documents(self, filtro_cidade, filtro_data, filtro_companhia_familia) -> Dict:
         collection = self.get_collection()
-        return collection.count_documents(filtro)
+
+        filtro_completo = {**filtro_cidade, **filtro_data, **filtro_companhia_familia}
+        return collection.count_documents(filtro_completo)
     
     def contagem_sentimentos_para_tipo_viagem(self, filtro_cidade, filtro_data, filtro_tipo_viagem):
         collection = self.get_collection()

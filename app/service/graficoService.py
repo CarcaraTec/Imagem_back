@@ -85,16 +85,16 @@ class GraficoService:
             "neutros": round(porcentagem_neutros, 2)
         }
     
-    def count_companhia_viagem(self, cidade):
+    def count_companhia_viagem(self, cidade=None, data_inicio=None, data_fim=None):
         filtro_cidade = self.repository.build_filtro_cidade(cidade)
-
+        filtro_data = self.repository.build_filtro_data(data_inicio, data_fim)
         filtro_companhia_familia = self.repository.build_filtro_regex_tags('Family')
         filtro_companhia_casal = self.repository.build_filtro_regex_tags('Couple')
         filtro_companhia_sozinho = self.repository.build_filtro_regex_tags('Solo')
 
-        count_familia = self.repository.count_documents({**filtro_cidade, **filtro_companhia_familia})
-        count_sozinho = self.repository.count_documents({**filtro_cidade, **filtro_companhia_sozinho})
-        count_casal = self.repository.count_documents({**filtro_cidade, **filtro_companhia_casal})
+        count_familia = self.repository.count_documents(filtro_cidade, filtro_data, filtro_companhia_familia)
+        count_sozinho = self.repository.count_documents(filtro_cidade,filtro_data, filtro_companhia_sozinho)
+        count_casal = self.repository.count_documents(filtro_cidade, filtro_companhia_casal)
 
         total = count_familia + count_sozinho + count_casal
 
