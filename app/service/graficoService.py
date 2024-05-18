@@ -92,9 +92,13 @@ class GraficoService:
         filtro_companhia_casal = self.repository.build_filtro_regex_tags('Couple')
         filtro_companhia_sozinho = self.repository.build_filtro_regex_tags('Solo')
 
-        count_familia = self.repository.count_documents(filtro_cidade, filtro_data, filtro_companhia_familia)
-        count_sozinho = self.repository.count_documents(filtro_cidade,filtro_data, filtro_companhia_sozinho)
-        count_casal = self.repository.count_documents(filtro_cidade, filtro_companhia_casal)
+        filtro_completo_family = {**filtro_cidade, **filtro_data, **filtro_companhia_familia}
+        filtro_completo_solo = {**filtro_cidade, **filtro_data, **filtro_companhia_sozinho}
+        filtro_completo_casal = {**filtro_cidade, **filtro_data, **filtro_companhia_casal}
+
+        count_familia = self.repository.count_documents(filtro_completo_family)
+        count_sozinho = self.repository.count_documents(filtro_completo_solo)
+        count_casal = self.repository.count_documents(filtro_completo_casal)
 
         total = count_familia + count_sozinho + count_casal
 
