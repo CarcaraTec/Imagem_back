@@ -107,11 +107,9 @@ class ReviewsAnalyzedRepository:
         result = list(collection.aggregate(pipeline))
         return result
     
-    def count_documents(self, filtro_cidade, filtro_data, filtro_companhia_familia) -> Dict:
+    def count_documents(self, filtro) -> Dict:
         collection = self.get_collection()
-
-        filtro_completo = {**filtro_cidade, **filtro_data, **filtro_companhia_familia}
-        return collection.count_documents(filtro_completo)
+        return collection.count_documents(filtro)
     
     def contagem_sentimentos_para_tipo_viagem(self, filtro_cidade, filtro_data, filtro_tipo_viagem):
         collection = self.get_collection()
