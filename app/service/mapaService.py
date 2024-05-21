@@ -8,15 +8,20 @@ class MapaService:
     def __init__(self):
         self.repository = ReviewsAnalyzedRepository()
 
-    def gerar_mapa_de_calor(self, sentimento: str = None) -> str:
+    def gerar_mapa_de_calor(self, sentimento= None, cidade=None, data_inicio=None, data_fim=None) -> str:
         m = folium.Map([47.3, 8.5], zoom_start=5)
+        filtro_cidade = self.repository.build_filtro_cidade(cidade)
+        filtro_data = self.repository.build_filtro_data(data_inicio, data_fim)
 
         filter = {'lat': {'$exists': True}, 'lng': {'$exists': True}}
 
         if sentimento is not None:
             filter['sentiment'] = sentimento
 
-        data = self.repository.select_random(filter, 100)
+        filter.update(filtro_cidade)
+        filter.update(filtro_data)
+
+        data = self.repository.select_random(filter, 500)
 
         coordinates = [
             [elem.get('lat'), elem.get('lng')] 
@@ -28,10 +33,15 @@ class MapaService:
 
         return m.get_root().render()
 
-    def gerar_mapa_marcador(self):
+    def gerar_mapa_marcador(self, cidade=None, data_inicio=None, data_fim=None):
         m = folium.Map([47.3, 8.5], zoom_start=5)
+        filtro_cidade = self.repository.build_filtro_cidade(cidade)
+        filtro_data = self.repository.build_filtro_data(data_inicio, data_fim)
 
         filter = {'lat': {'$exists': True}, 'lng': {'$exists': True}}
+
+        filter.update(filtro_cidade)
+        filter.update(filtro_data)
 
         data = self.repository.select_random(filter, 100)
 

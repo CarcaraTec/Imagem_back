@@ -42,12 +42,13 @@ class ReviewsAnalyzedRepository:
         response = [{**elem, '_id': str(elem['_id'])} for elem in data]
         return response
     
-    def select_random(self, filter, num_samples: int) -> List[Dict]:
+    def select_random(self, filtro, num_samples: int) -> List[Dict]:
         collection = self.get_collection()
 
         pipeline = [
-            {"$match": filter},
-            {"$sample": {"size": num_samples}}
+            {"$match": filtro},
+            {"$sample": {"size": num_samples}},
+            {"$project": {"lat": 1, "lng": 1, "sentiment": 1}} 
         ]
 
         random_documents = collection.aggregate(pipeline)
@@ -70,7 +71,6 @@ class ReviewsAnalyzedRepository:
             {"$group": {"_id": "$sentiment", "count": {"$sum": 1}}}
         ]
 
-        print(pipeline)
         result = collection.aggregate(pipeline)
         
         sentiment_counts = {entry['_id']: entry['count'] for entry in result}
