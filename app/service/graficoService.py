@@ -2,6 +2,7 @@ from app.repository.reviews_analyzed_repository import ReviewsAnalyzedRepository
 from datetime import datetime
 from collections import Counter
 import nltk
+import re
 from nltk.corpus import stopwords
 nltk.download('stopwords')
 
@@ -85,6 +86,44 @@ class GraficoService:
             "neutros": round(porcentagem_neutros, 2)
         }
     
+    def count_tempo_hospedagem_percentual(self, cidade=None, data_inicio=None, data_fim=None):
+        filtro_cidade = self.repository.build_filtro_cidade(cidade)
+        filtro_data = self.repository.build_filtro_data(data_inicio, data_fim)
+        resultado = self.repository.count_tempo_hospedagem_percentual(filtro_cidade, filtro_data)
+        
+        
+
+        count_2_ou_menos = 0
+        count_3_a_4 = 0
+        count_mais_de_4 = 0
+        total_reviews = 0
+
+        for doc in resultado:
+            if doc["_id"] == "2 ou menos noites":
+                count_2_ou_menos = doc["count"]
+            elif doc["_id"] == "3 a 4 noites":
+                count_3_a_4 = doc["count"]
+            elif doc["_id"] == "mais de 4 noites":
+                count_mais_de_4 = doc["count"]
+            total_reviews += doc["count"]
+
+        if total_reviews == 0:
+            return {
+                "2 ou menos noites": 0,
+                "3 a 4 noites": 0,
+                "mais de 4 noites": 0
+            }
+
+        percentual_2_ou_menos = (count_2_ou_menos / total_reviews) * 100
+        percentual_3_a_4 = (count_3_a_4 / total_reviews) * 100
+        percentual_mais_de_4 = (count_mais_de_4 / total_reviews) * 100
+
+        return {
+            "2 ou menos noites": round(percentual_2_ou_menos, 2),
+            "3 a 4 noites": round(percentual_3_a_4, 2),
+            "mais de 4 noites": round(percentual_mais_de_4, 2)
+        }
+
     def count_companhia_viagem(self, cidade=None, data_inicio=None, data_fim=None):
         filtro_cidade = self.repository.build_filtro_cidade(cidade)
         filtro_data = self.repository.build_filtro_data(data_inicio, data_fim)
