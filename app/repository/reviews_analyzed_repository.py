@@ -111,6 +111,38 @@ class ReviewsAnalyzedRepository:
         collection = self.get_collection()
         return collection.count_documents(filtro)
     
+    def count_tempo_hospedagem_percentual(self, filtro_cidade, filtro_data):
+        collection = self.get_collection()
+
+        filtro_completo = {**filtro_cidade, **filtro_data}
+
+        pipeline = [
+            {"$match": filtro_completo},
+            {"$project": {"Tags": 1}},
+            {"$unwind": "$Tags"},
+            {"$group": {
+                "_id": {
+                    "$cond": [
+                        {"$regexMatch": {"input": "$Tags", "regex": r"Stayed (1|2) night"}},
+                        "2 ou menos noites",
+                        {"$cond": [
+                            {"$regexMatch": {"input": "$Tags", "regex": r"Stayed (3|4) night"}},
+                            "3 a 4 noites",
+                            {"$cond": [
+                                {"$regexMatch": {"input": "$Tags", "regex": r"Stayed (\d+) night", "options": "i"}},
+                                "mais de 4 noites",
+                                "outro"
+                            ]}
+                        ]}
+                    ]
+                },
+                "count": {"$sum": 1}
+            }}
+        ]
+
+        result = list(collection.aggregate(pipeline))
+        return result
+    
     def contagem_sentimentos_para_tipo_viagem(self, filtro_cidade, filtro_data, filtro_tipo_viagem):
         collection = self.get_collection()
   
