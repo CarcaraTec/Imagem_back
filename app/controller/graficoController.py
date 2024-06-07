@@ -63,3 +63,11 @@ def count_tempo_hospedagem_percentual():
     data_fim = request.args.get('data_fim') 
     resultado = grafico_service.count_tempo_hospedagem_percentual(cidade, data_inicio, data_fim)
     return jsonify(resultado)
+
+@grafico_bp.route("/mobile", methods = ['GET'])
+def count_avaliacoes_mobile():
+    cidade = request.args.get('cidade') 
+    data_inicio = request.args.get('data_inicio')
+    data_fim = request.args.get('data_fim') 
+    resultado = grafico_service.count_avaliacoes_mobile(cidade, data_inicio, data_fim)
+    return jsonify(resultado)

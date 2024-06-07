@@ -146,6 +146,24 @@ class GraficoService:
             "sozinho": round((count_sozinho / total) * 100, 2),
             "casal": round((count_casal / total) * 100, 2)
         }
+    
+    def count_avaliacoes_mobile(self, cidade=None, data_inicio=None, data_fim=None):
+        filtro_cidade = self.repository.build_filtro_cidade(cidade)
+        filtro_data = self.repository.build_filtro_data(data_inicio, data_fim)
+        filtro_companhia_familia = self.repository.build_filtro_regex_tags('Submitted from a mobile device')
+
+        filtro_completo_mobile = {**filtro_cidade, **filtro_data, **filtro_companhia_familia}
+
+        count_mobile = self.repository.count_documents(filtro_completo_mobile)
+
+        total = self.repository.count_documents({})
+
+        porcetagem_mobile = round((count_mobile / total) * 100, 2)
+
+        return {
+            "mobile": porcetagem_mobile,
+            "others": 100 - porcetagem_mobile
+        }
 
     def contar_ocorrencias_por_mes(self, dados, sentiment):
         ocorrencias_por_mes = {month: 0 for month in range(1, 13)}
