@@ -1,30 +1,33 @@
 import pickle
 import nltk
 from nltk.corpus import stopwords
+from deep_translator import GoogleTranslator
 
 # carregar o modelo treinado
-with open('app/files/logistic_regression_model.pkl', 'rb') as f:
-    clf = pickle.load(f)
+with open('app/files/lightgbm_model.pkl', 'rb') as f:
+    lgbm_model = pickle.load(f)
 
 # carregar o CountVectorizer
-with open('app/files/count_vectorizer.pkl', 'rb') as f:
-    vect = pickle.load(f)
+with open('app/files/tfidf_vectorizer_lgb.pkl', 'rb') as f:
+    tfidf_vect = pickle.load(f)
+
+def translate_to_english(text):
+    translator = GoogleTranslator(source='auto', target='en')
+    return translator.translate(text)
 
 # definir stopwords como ingles
 stop_words = set(stopwords.words('english'))
 
-# pré-processar a frase de entrada
-def preprocess_text(text):
-    text_vect = vect.transform([text])
-    return text_vect
-
 # prever o sentimento da frase
 def predict_sentiment(text):
-    text_vect = preprocess_text(text)
-    sentiment = clf.predict(text_vect)
-    if sentiment == 1:
+    translated_text = translate_to_english(text)
+    print(translated_text)
+    preprocessed_text = remove_stopwords(translated_text)
+    text_vector = tfidf_vect.transform([preprocessed_text])
+    sentiment = lgbm_model.predict(text_vector)[0]
+    if sentiment == 2:
         return 'Positive'
-    elif sentiment == 0:
+    elif sentiment == 1:
         return 'Neutral'
     else:
         return 'Negative'
@@ -40,8 +43,7 @@ def remove_stopwords(text):
     
 # uso
 def predict_text(input_text):
-    text = remove_stopwords(input_text)
-    predicted_sentiment = predict_sentiment(text)
+    predicted_sentiment = predict_sentiment(input_text)
     sentiment = {
         'sentiment': predicted_sentiment
     }
